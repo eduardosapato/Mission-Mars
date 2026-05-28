@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mission Mars</title>
+  <link rel="stylesheet" href="mission_mars.css">
+</head>
+<body>
+
+<div id="gameWrapper">
+  <!-- Stars background canvas -->
+  <canvas id="starsBg" width="480" height="640"></canvas>
+
+  <!-- Main game canvas -->
+  <canvas id="gameCanvas" width="480" height="640" style="position:absolute;top:0;left:0;z-index:1;"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-block">
+      <span class="hud-label">NAVE</span>
+      <div id="healthBar"><div id="healthFill" style="width:100%"></div></div>
+      <span class="hud-val" id="healthVal">100%</span>
+    </div>
+    <div class="hud-block" style="align-items:center">
+      <span id="phaseLabel">FASE 1</span>
+      <span class="hud-val" id="scoreVal" style="font-size:7px;color:#ff4400">PTS: 0</span>
+    </div>
+    <div class="hud-block" style="align-items:flex-end">
+      <span class="hud-label">RESPOSTAS</span>
+      <span class="hud-val" id="answersVal">✓0 ✗0</span>
+      <span class="hud-label" style="margin-top:4px">ESCUDO</span>
+      <span class="hud-val" id="shieldVal" style="color:#666">NÃO</span>
+    </div>
+  </div>
+
+  <!-- Boss HUD -->
+  <div id="bossHud" class="hidden">
+    <div id="bossLabel">👾 ALIENÍGENA BOSS</div>
+    <div id="bossHealthBar"><div id="bossHealthFill" style="width:100%"></div></div>
+  </div>
+
+  <!-- Phase announce overlay -->
+  <div id="phaseAnnounce">
+    <div id="phaseAnnounceText"></div>
+  </div>
+
+  <!-- MENU SCREEN -->
+  <div class="screen" id="menuScreen">
+    <div style="font-size:10px;color:var(--green);margin-bottom:6px;text-shadow:0 0 15px var(--green)">🚀</div>
+    <div class="pixel-title">MISSION<br>MARS</div>
+    <div class="pixel-sub">A JORNADA DO CONHECIMENTO</div>
+    <div style="font-size:6px;color:#441100;line-height:2.2;margin-bottom:20px">
+      ► Controles: ← → setas ou A/D<br>
+      ► Acerte a resposta para reparar a nave<br>
+      ► Mais rápido = maior bônus de dano!
+    </div>
+    <button class="pixel-btn" onclick="startGame()">▶ INICIAR MISSÃO</button>
+    <button class="pixel-btn yellow" onclick="showInstructions()">? INSTRUÇÕES</button>
+  </div>
+
+  <!-- INSTRUCTIONS SCREEN -->
+  <div class="screen hidden" id="instrScreen">
+    <div class="pixel-title" style="font-size:10px">INSTRUÇÕES</div>
+    <div style="font-size:6px;color:var(--white);line-height:2.5;text-align:left;margin:10px 0 20px">
+      🚀 Voe da Terra até Marte!<br>
+      ⬅️➡️ Setas / A-D para desviar<br>
+      💥 Obstáculos danificam a nave<br>
+      ⌨️ Dano = ACERTE a resposta correta!<br>
+      ✅ Certo + RÁPIDO → reparo de HP<br>
+      ❌ Errado / tempo → mais dano<br>
+      ⚡ Digite em &lt;5s → bônus DMG ×3!<br><br>
+      📋 FASES:<br>
+      1: Atmosfera - PÁSSAROS<br>
+      2: Nuvens Altas - AVIÕES<br>
+      3: Órbita Baixa - SATÉLITES<br>
+      4: Cinturão - METEORITOS<br>
+      5: Espaço Profundo - ASTEROIDES<br>
+      6: Órbita de Marte - DETRITOS<br>
+      👾 BOSS: ALIENÍGENA em Marte! Acerte rápido!
+    </div>
+    <button class="pixel-btn" onclick="hideInstructions()">◀ VOLTAR</button>
+  </div>
+
+  <!-- GAME OVER SCREEN -->
+  <div class="screen hidden" id="gameOverScreen">
+    <div class="pixel-title" style="color:var(--red);font-size:12px">GAME<br>OVER</div>
+    <div class="pixel-sub" id="gameOverMsg">A nave foi destruída...</div>
+    <div style="font-size:7px;color:#553333;margin-bottom:20px" id="finalScore"></div>
+    <button class="pixel-btn" onclick="startGame()">↺ TENTAR NOVAMENTE</button>
+    <button class="pixel-btn red" onclick="showMenu()">⌂ MENU</button>
+  </div>
+
+  <!-- WIN SCREEN -->
+  <div class="screen hidden" id="winScreen">
+    <div class="pixel-title" style="color:var(--yellow);font-size:10px">MISSÃO<br>CONCLUÍDA!</div>
+    <canvas id="trophyCanvas" width="200" height="180" style="margin:10px 0;display:block"></canvas>
+    <div class="pixel-sub" id="winMsg">Você derrotou o alienígena!</div>
+    <div style="font-size:7px;color:var(--green);margin-bottom:16px" id="winScore"></div>
+    <button class="pixel-btn yellow" onclick="startGame()">↺ JOGAR NOVAMENTE</button>
+    <button class="pixel-btn" onclick="showMenu()">⌂ MENU</button>
+  </div>
+
+  <!-- MOBILE CONTROLS -->
+  <div id="mobileControls">
+    <div class="mob-btn" id="btnLeft">◀</div>
+    <div class="mob-btn" id="btnRight">▶</div>
+  </div>
+
+  <!-- QUIZ MODAL -->
+  <div id="quizModal" class="hidden">
+    <div id="quizTitle">⚠ NAVE DANIFICADA ⚠</div>
+    <div id="quizTimer">30</div>
+    <div id="timerBar"><div id="timerFill" style="width:100%"></div></div>
+    <div id="dmgMultiplier"></div>
+    <div id="quizQuestion"></div>
+    <div id="answerDisplay"></div>
+    <input id="speedInput" type="text" placeholder="DIGITE SUA RESPOSTA..." autocomplete="off" spellcheck="false" />
+    <div id="quizOptions"></div>
+    <div id="quizFeedback"></div>
+    <div id="speedHint"></div>
+  </div>
+</div>
+  <script src="mission_mars.js"></script>
+</body>
+</html>
